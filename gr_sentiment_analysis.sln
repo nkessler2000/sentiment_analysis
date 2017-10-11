@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "gr_sentiment_analysis", "Goodreads_scraper\gr_sentiment_analysis.pyproj", "{D091FF52-EAFE-40A9-9983-F6AAE94735DC}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "gr_sentiment_analysis", "gr_sentiment_analysis\gr_sentiment_analysis.pyproj", "{D091FF52-EAFE-40A9-9983-F6AAE94735DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
