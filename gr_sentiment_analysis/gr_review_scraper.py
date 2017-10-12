@@ -1,10 +1,10 @@
 import requests
-from bs4 import BeautifulSoup as bs
+from bs4 import BeautifulSoup
 
 def get_html_source(url):
     """gets HTML page from URL and returns a BeautifulSoup object"""
     html_source = requests.get(url).text
-    soup = bs(html_source, 'html.parser')
+    soup = BeautifulSoup(html_source, 'html.parser')
     return soup
 
 def get_rating(soup):
@@ -35,7 +35,7 @@ def get_review_by_id(id):
 
 def main():
     dune = get_review_by_id(2348449)
-    print(dune['review_text'])   
+    print(dune['review_text'])
     pass
 
 if __name__ == "__main__":

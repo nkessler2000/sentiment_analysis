@@ -11,9 +11,8 @@ def words_to_list(str):
         # remove blanks and convert to lower-case
         words_list = [word.lower() for word in words_list if word != '']
         return words_list
-    except Exception as e:
-        print("Error converting words in input string to list:\n{0}".format(e))
-
+    except:
+        raise
 
 def main():
     # read AFINN words list to pandas DF
@@ -21,18 +20,16 @@ def main():
         afinn = pd.read_csv('./AFINN-111.txt', sep='\t', names=['word', 'score'])
         # convert score column to int
         afinn['score'] = afinn['score'].astype('int')
-    except FileExistsError:
-        print("AFINN-111.txt file not found. Exiting...")
-        return
     except Exception as e:
         print("Error importing AFINN-111.txt:\n {0}".format(e))
         return
     
-    # get book review for Dune
+    # get a book review
     try:
         review = gr.get_review_by_id(2348449)
     except Exception as e:
         print("Error retrieving review:\n {0}".format(e))
+        return
 
     # extract words into list and convert to panda DF
     review_words = pd.DataFrame({'word':words_to_list(review['review_text'])})
@@ -41,7 +38,7 @@ def main():
 
     # print results
     print(review_word_scores)
-    print("Sum of word scores: {0}".format(review_word_scores['score'].sum()))
+    print("Title: {0}. Sum of word scores: {1}. Reviewer's rating: {2}/5".format(review['title'], review_word_scores['score'].sum(), review['rating']))
 
 
 if __name__ == "__main__":
