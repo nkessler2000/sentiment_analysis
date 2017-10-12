@@ -5,13 +5,14 @@
     <ProjectGuid>d091ff52-eafe-40a9-9983-f6aae94735dc</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>gr_review_scraper.py</StartupFile>
+    <StartupFile>gr_sentiment_analysis.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>gr_sentiment_analysis</Name>
     <RootNamespace>Goodreads_scraper</RootNamespace>
+    <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>

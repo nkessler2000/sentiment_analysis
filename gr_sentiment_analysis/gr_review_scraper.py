@@ -1,9 +1,6 @@
 import requests
 from bs4 import BeautifulSoup as bs
 
-#api_key = 'P1uRR4YWIS1HzT627Maw'
-#api_secret = 'fnlRuVhwhNuyRqk1GNz7t48hKKWS9yh8GNA9O0pnnp8'
-
 def get_html_source(url):
     """gets HTML page from URL and returns a BeautifulSoup object"""
     html_source = requests.get(url).text
@@ -33,17 +30,15 @@ def get_review_by_id(id):
     soup = get_html_source(url)
     ret = {'title':get_title(soup),
            'rating':get_rating(soup), 
-           'review':get_review_text(soup)}
+           'review_text':get_review_text(soup)}
     return ret
 
+def main():
+    dune = get_review_by_id(2348449)
+    print(dune['review_text'])   
+    pass
+
+if __name__ == "__main__":
+    main()
 
 
-#soup = get_html_source("https://www.goodreads.com/review/show/2348449")
-#rating = get_rating(soup)
-#review_text = get_review_text(soup)
-#print(review_text)
-#pass
-
-dune = get_review_by_id(2348449)
-print(dune['review'])
-pass
