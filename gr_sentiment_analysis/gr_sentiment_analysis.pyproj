@@ -5,7 +5,7 @@
     <ProjectGuid>d091ff52-eafe-40a9-9983-f6aae94735dc</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>gr_sentiment_analysis.py</StartupFile>
+    <StartupFile>gr_book_info.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -13,6 +13,7 @@
     <Name>gr_sentiment_analysis</Name>
     <RootNamespace>Goodreads_scraper</RootNamespace>
     <IsWindowsApplication>False</IsWindowsApplication>
+    <InterpreterId>Global|PythonCore|3.6</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,6 +24,15 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="gr_book_info.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="gr_get_text.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="gr_reviews.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="gr_review_scraper.py" />
     <Compile Include="gr_sentiment_analysis.py">
       <SubType>Code</SubType>
@@ -32,7 +42,11 @@
     <Folder Include="data\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="data\book_info.csv" />
     <Content Include="data\dune.csv" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|PythonCore|3.6" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

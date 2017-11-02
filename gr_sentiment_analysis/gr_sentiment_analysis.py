@@ -3,9 +3,8 @@ import pandas as pd
 import numpy as np
 import regex as re
 import matplotlib.pyplot as plt
-import seaborn as sns
+#import seaborn as sns
 import os
-
 
 
 def words_to_list(str):
@@ -71,11 +70,11 @@ def main():
     words_df = pd.merge(words_df, afinn, how='left', on='word')
 
     # group by ID and do some aggregation
-    review_median_sentiment = words_df[pd.notnull(words_df['score'])].groupby(['review_id', 'rating'], as_index=False).median()
-    print(review_mean_sentiment)
+    review_median_sentiment = words_df[pd.notnull(words_df['score'])].groupby(['review_id', 'rating'], as_index=False).mean()
+    print(review_median_sentiment)
 
     # take a look at a boxplot
-    sns.boxplot(data=review_mean_sentiment, x='rating', y='score')
+    #sns.boxplot(data=review_median_sentiment, x='rating', y='score')
     plt.show()
 
 if __name__ == "__main__":
