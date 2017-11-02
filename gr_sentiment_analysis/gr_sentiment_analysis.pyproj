@@ -27,13 +27,9 @@
     <Compile Include="gr_book_info.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="gr_get_text.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="gr_reviews.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="gr_review_scraper.py" />
     <Compile Include="gr_sentiment_analysis.py">
       <SubType>Code</SubType>
     </Compile>
@@ -42,11 +38,10 @@
     <Folder Include="data\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="data\book_info.csv" />
-    <Content Include="data\dune.csv" />
+    <InterpreterReference Include="Global|PythonCore|3.6" />
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="Global|PythonCore|3.6" />
+    <Content Include="data\book_info.tsv" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

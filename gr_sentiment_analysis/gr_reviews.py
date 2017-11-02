@@ -5,7 +5,7 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 
 import time
-import gr_review_scraper as scraper
+from gr_book_info import gr_book_info
 
 class gr_reviews:
 
@@ -128,15 +128,8 @@ class gr_reviews:
 
 
 def get_info(id):
-    if id == 'random':
-        url = 'https://www.goodreads.com/book/random'
-    elif str.isnumeric(str(id)):
-        url = 'https://www.goodreads.com/book/show/{0}'.format(id)
-
-    soup = scraper.get_html_source(url)
-    book_info = scraper.extract_book_info(soup)
-
-    return book_info
+    book_info = gr_book_info(id)
+    return book_info.info
 
 def main():
     time_start = time.time()
