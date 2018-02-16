@@ -1,6 +1,7 @@
 import pandas as pd
 import requests
 import re
+import sqlite3
 from datetime import datetime
 from bs4 import BeautifulSoup
 
@@ -21,8 +22,8 @@ class gr_reviews:
 
     def __get_reviews(self, id, count):
         """Gets reviews for a given book id"""
-        pages_to_parse = count // 30
-        for i in range(1, pages_to_parse + 1):
+        pages_to_parse = count // 30 + 1 if count % 30 != 0 else count // 30 
+        for i in range(1, int(pages_to_parse + 1)):
             url = 'https://www.goodreads.com/book/reviews/{0}?page={1}&sort=default&text_only=true'.format(str(id), str(i))
             soup = self.__get_html_source(url)
 
@@ -36,15 +37,20 @@ class gr_reviews:
             review_text = self.__extract_review_text(soup)
             
             # create a DataFrame
-            page_df = pd.DataFrame({
-                'review_id':review_ids,
-                'review_date':review_dates,
-                'rating':ratings,
-                'review_text':review_text
-                })
+            try:
+                page_df = pd.DataFrame({
+                    'review_id':review_ids,
+                    'review_date':review_dates,
+                    'rating':ratings,
+                    'review_text':review_text
+                    })
 
-            # append to reviews DataFrame
-            self.reviews = pd.concat([self.reviews,page_df])
+                # append to reviews DataFrame
+                self.reviews = pd.concat([self.reviews,page_df])
+            except ValueError as v:
+                print('Failed to load book info for book ID {0}: {1}'.format(id, v))
+                with open('./data/failed.txt', 'a') as file:
+                    file.write('{0}\n'.format(str(id)))
 
     def __get_html_source(self, url, retries=0):
         """gets HTML page from URL and returns a BeautifulSoup object"""
@@ -131,17 +137,45 @@ def get_info(id):
     book_info = gr_book_info(id)
     return book_info.info
 
-def main():
+def get_reviews():
     time_start = time.time()
-    dune_id = 234225
-    dune_info = get_info(dune_id)
-    min_val = min([float(dune_info['review_count']), 300])
-    print('Getting {0} reviews. Start time: {1}'.format(min_val, datetime.now()))
+
+    # set up database connection
+    conn = sqlite3.connect('./data/books.db')
+
+    # load book data from DB 
+    #book_info_df = pd.read_csv('./data/book_info_clean.tsv', sep='\t', encoding='utf-8')
+    sql = '''SELECT id, title, review_count FROM book_info_clean 
+        WHERE id > (SELECT IFNULL(MAX(book_id), 0) FROM reviews)
+        AND id NOT IN (SELECT book_id FROM reviews)'''
+
+    books = conn.execute(sql)
+
+    for row in books:
+        try:
+            book_id = row[0]
+            review_count = row[2]
+            book_title = row[1]
+            # select the min of 300 or review count
+            min_val = min([float(review_count), 300])
+            
+            print('Getting {0} reviews for book {1}:{2}. Start time: {3}'.format(int(min_val), book_id, book_title, datetime.now()))
     
-    dune = gr_reviews(dune_id, min_val)
-   # dune.reviews.to_csv('./data/dune_reviews.tsv', sep='\t', encoding='utf-8', index=False)
+            review_data = gr_reviews(book_id, min_val)
+            review_data.reviews.to_sql(con=conn, name='reviews')
+            #with open(file_path, 'a', encoding='utf-8') as file:
+            #    review_data.reviews.to_csv(file, sep='\t', encoding='utf-8', index=False, header=False)
+
+        except Exception as e:
+            print('Failed to load book info for book ID {0}: {1}'.format(book_id, e))
+            with open('./data/failed.txt', 'a') as file:
+                file.write('{0}\n'.format(str(book_id)))
+
     time_end = time.time()
-    print('Finished getting reviews. Completed in {0} seconds'.format(time_end - time_start))
+    print('Finished getting reviews at {0}. Completed in {1} seconds'.format(datetime.now(), time_end - time_start))
+
+def main():
+    get_reviews()
 
 if __name__ == '__main__':
     main()

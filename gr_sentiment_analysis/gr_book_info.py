@@ -2,6 +2,8 @@ import requests
 import os
 import re
 import time
+import sqlite3
+import pandas as pd
 from bs4 import BeautifulSoup
 from collections import OrderedDict
 from datetime import datetime
@@ -155,7 +157,7 @@ class gr_book_info:
         except (IndexError, AttributeError):
             return ret
 
-    def __extract_top_shelves(self, id):
+    def __extract_top_shelves(self, id, page = 1):
         """Gets the counts for shelfs favorites, to-read, and have-read. Returns a dict"""
         ret = {
             'to-read':'',
@@ -166,25 +168,43 @@ class gr_book_info:
         url = 'https://www.goodreads.com/book/shelves/{0}'.format(id)
         soup = self.__get_html_source(url)
 
+        ret = self.__pop_shelves(ret, soup)
+
+        # if all values not found on first page of shelves, try the second page.
+        if not all(v != '' for v in ret.values()):
+            try:
+                workurl = soup.find('a', attrs={'rel':'next'}).get('href')
+                soup = self.__get_html_source('https://www.goodreads.com' + workurl)
+                ret = self.__pop_shelves(ret, soup)
+            except:
+                pass
+
+        return ret
+
+    def __pop_shelves(self, dict, soup):
+        """Populates the shelves dictionary values"""
         try:
             pattern = re.compile('.shelf=to-read$')
             to_read = soup.find('a', attrs={'rel':'nofollow', 'href':pattern}).get_text()
-            ret['to-read'] = re.sub('[^\d]', '', to_read)
+            if dict['to-read'] == '':
+                dict['to-read'] = re.sub('[^\d]', '', to_read)
         except AttributeError:
             pass
         try:
             pattern = re.compile('.shelf=currently-reading$')
             currently_reading = soup.find('a', attrs={'rel':'nofollow', 'href':pattern}).get_text()
-            ret['currently-reading'] = re.sub('[^\d]', '', currently_reading)
+            if dict['currently-reading'] == '':
+                dict['currently-reading'] = re.sub('[^\d]', '', currently_reading)
         except AttributeError:
             pass
         try:
             pattern = re.compile('.shelf=favorites$')
             favorites = soup.find('a', attrs={'rel':'nofollow', 'href':pattern}).get_text()
-            ret['favorites'] = re.sub('[^\d]', '', favorites)
+            if dict['favorites'] == '':
+                dict['favorites'] = re.sub('[^\d]', '', favorites)
         except AttributeError:
             pass
-        return ret
+        return dict
         
     def __extract_book_info(self, url):
         """Gets the book title, book ID, author, genre, pages, number of reviews, and average rating. Returns a dict"""
@@ -221,7 +241,7 @@ class gr_book_info:
 
             # get genres and shelves only if the book has more than 200 ratings. This is to improve performance
             # by not getting info for books with too low ratings.
-            if int(ratings_count) > 200:
+            if int(reviews_count) >= 40:
                 top_genres = self.__extract_top_genres(soup)
                 top_shelves = self.__extract_top_shelves(book_id)
 
@@ -237,26 +257,80 @@ class gr_book_info:
             raise
             #return None
 
-def main():
-    # check if the CSV exists and if not, create and write header
-    file_path = './data/book_info.tsv'
-    if not os.path.isfile(file_path):
-        with open(file_path, mode='w', encoding='utf-8') as file:
-            columns = ['id', 'title', 'orig_title', 'author', 'language', 
-                       'published', 'avg_rating', 'ratings_count', 'review_count', 
-                       'genre_1', 'genre_2', 'genre_2', 
-                       'to_read', 'currently_reading', 'favorites']
-            file.write('\t'.join(columns) + '\n')
+def get_book_info(book_count):
+    # set database connection
+    conn = sqlite3.connect('./data/books.db')
 
-    # get info for 5000 random books    
-    for i in range(5000):
-        book_info = gr_book_info('random')
+    # create table for raw book info
+    bookinfo_tbl = '''CREATE TABLE IF NOT EXISTS book_info (
+        id INT NOT NULL,
+        title TEXT,
+        orig_title TEXT,
+        author TEXT,
+        published DATE,
+        language TEXT,
+        avg_rating REAL,
+        ratings_count INT,
+        review_count INT,
+        genre_1 TEXT,
+        genre_2 TEXT,
+        genre_3 TEXT,
+        to_read INT,
+        currently_reading INT,
+        favorites INT
+        )
+    '''
+    conn.execute(bookinfo_tbl)
+
+    # get info for book_count random books    
+    for i in range(book_count):
+        try:
+            book_info = gr_book_info('random')
+        except:
+            # if there's a problem reading a book info, skip and go to next
+            continue
         if book_info.info != None:
-            book_info_values = list(book_info.info.values())
-            with open(file_path, mode='a', encoding='utf-8') as file:
-                line = '\t'.join(book_info_values) + '\n'
-                file.write(line)
-                file.close()
+            book_info_df = pd.DataFrame(book_info.info)
+            book_info_df.to_sql(con=conn, name='book_info', if_exists='append', index=False)
+
+def clean_book_info():
+    #open connection to SQLite database
+    conn = sqlite3.connect('./data/books.db')
+
+    # Get raw book info data from database.
+    book_info_raw = conn.execute('SELECT * FROM book_info')
+
+    # filter reviews where review count is >= 40
+    book_info_40 = book_info_raw.loc[book_info_raw['review_count'] >=40]
+    # set is_copy to False to suppress SettingWithCopyWarning
+    book_info_40.is_copy = False
+
+    # replace missing values in shelves with zeros
+    book_info_40[['favorites', 'to_read', 'currently_reading']] = book_info_40[['favorites', 'to_read', 'currently_reading']].replace(np.nan, 0)
+
+    # Replace "Original Title" with "Title" where missing, else use Original Title
+    book_info_40[['orig_title']] = np.where(pd.isnull(book_info_40['orig_title']), book_info_40['title'], book_info_40['orig_title'])
+    
+    # now drop the 'title' column and rename 'orig_title' to 'title'
+    book_info_40.drop('title', axis=1, inplace=True)
+    book_info_40.columns = ['title' if x == 'orig_title' else x for x in book_info_40.columns]
+
+    # sort the rows by the shelves, and keep only the rows with the max values and then sort by title
+    book_info_40 = book_info_40.sort_values(['title','to_read', 'currently_reading', 'favorites'], ascending=False).drop_duplicates('title')
+    book_info_40 = book_info_40.sort_values('title')
+
+    # reindex
+    book_info_40 = book_info_40.reset_index()
+
+    # insert cleaned data into database
+    try:
+        book_info_40.to_sql(con=conn, name='book_info_clean', index=False, if_exists='fail')
+    except:
+        pass
+     
+def main():
+    get_book_info()
+    clean_book_info()
 
 if __name__ == '__main__':
     main()

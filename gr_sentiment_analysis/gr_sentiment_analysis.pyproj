@@ -5,7 +5,7 @@
     <ProjectGuid>d091ff52-eafe-40a9-9983-f6aae94735dc</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>gr_book_info.py</StartupFile>
+    <StartupFile>__main__.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -13,7 +13,7 @@
     <Name>gr_sentiment_analysis</Name>
     <RootNamespace>Goodreads_scraper</RootNamespace>
     <IsWindowsApplication>False</IsWindowsApplication>
-    <InterpreterId>Global|PythonCore|3.6</InterpreterId>
+    <InterpreterId>Global|ContinuumAnalytics|Anaconda36-64</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -24,13 +24,19 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="books_db.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="gr_book_info.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="gr_reviews.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="gr_sentiment_analysis.py">
+    <Compile Include="gr_features.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="__main__.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
@@ -38,10 +44,11 @@
     <Folder Include="data\" />
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="Global|PythonCore|3.6" />
+    <InterpreterReference Include="Global|ContinuumAnalytics|Anaconda36-64" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="data\book_info.tsv" />
+    <Content Include="data\book_info_raw.tsv" />
+    <Content Include="data\book_reviews_1.tsv" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
