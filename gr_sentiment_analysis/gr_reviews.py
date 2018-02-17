@@ -1,6 +1,7 @@
 import pandas as pd
 import requests
 import re
+import os
 import sqlite3
 from datetime import datetime
 from bs4 import BeautifulSoup
@@ -49,7 +50,9 @@ class gr_reviews:
                 self.reviews = pd.concat([self.reviews,page_df])
             except ValueError as v:
                 print('Failed to load book info for book ID {0}: {1}'.format(id, v))
-                with open('./data/failed.txt', 'a') as file:
+                dir = os.path.dirname(__file__)
+                fail_file = os.path.join(dir, 'data/failed.txt')
+                with open(fail_file, 'a') as file:
                     file.write('{0}\n'.format(str(id)))
 
     def __get_html_source(self, url, retries=0):
@@ -86,7 +89,7 @@ class gr_reviews:
                     rating = 0
                 elif 'rated it' in ar.get_text().strip():
                     rating_text = ar.find_next('span', attrs={'class':' staticStars'})
-                    rating_text = rating_text.find_next('span').get('title')
+                    rating_text = rating_text.find_next('span').get_text()
                     rating = self.__rating_text_to_num(rating_text)
                 else:
                     rating = 0
@@ -141,7 +144,9 @@ def get_reviews():
     time_start = time.time()
 
     # set up database connection
-    conn = sqlite3.connect('./data/books.db')
+    dir = os.path.dirname(__file__)
+    db_file = os.path.join(dir, 'data/books.db')
+    conn = sqlite3.connect(db_file)
 
     # load book data from DB 
     #book_info_df = pd.read_csv('./data/book_info_clean.tsv', sep='\t', encoding='utf-8')
@@ -162,13 +167,15 @@ def get_reviews():
             print('Getting {0} reviews for book {1}:{2}. Start time: {3}'.format(int(min_val), book_id, book_title, datetime.now()))
     
             review_data = gr_reviews(book_id, min_val)
-            review_data.reviews.to_sql(con=conn, name='reviews')
+            review_data.reviews.to_sql(con=conn, name='reviews', index=False, if_exists='append')
             #with open(file_path, 'a', encoding='utf-8') as file:
             #    review_data.reviews.to_csv(file, sep='\t', encoding='utf-8', index=False, header=False)
 
         except Exception as e:
             print('Failed to load book info for book ID {0}: {1}'.format(book_id, e))
-            with open('./data/failed.txt', 'a') as file:
+            dir = os.path.dirname(__file__)
+            fail_file = os.path.join(dir, 'data/failed.txt')
+            with open(fail_file, 'a') as file:
                 file.write('{0}\n'.format(str(book_id)))
 
     time_end = time.time()

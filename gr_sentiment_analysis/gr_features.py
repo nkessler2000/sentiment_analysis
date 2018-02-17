@@ -48,7 +48,9 @@ def review_features(row):
 
 def extract_features():
     # set up database connection and get data
-    conn = sqlite3.connect('./data/books.db')
+    dir = os.path.dirname(__file__)
+    db_file = os.path.join(dir, 'data/books.db')
+    conn = sqlite3.connect(db_file)
             
     # get review words for each review and return as a table of words
     sql = '''SELECT review_id, review_text FROM reviews 
@@ -83,12 +85,16 @@ def extract_features():
         result.to_sql(con=conn, name='review_features', index=False, if_exists='append')
 
     # now that we have all our words and all our sentiment scores in the database, now is the time to actually pull the data out and do some computations
-    word_sentiment_sql = '''SELECT rw.review_id, a.score AS afinn_score, o.sentiment AS bing_sentiment
+    word_sentiment_sql = word_sentiment_sql = '''SELECT rw.review_id, 
+			a.score AS afinn_score, 
+			o.sentiment AS bing_sentiment,
+			m.polarity AS mpqa_polarity,
+			i.polarity AS inq_polarity
         FROM review_words rw
         LEFT JOIN afinn_lexicon a ON a.word = rw.word
         LEFT JOIN bing_lexicon o ON o.word = rw.word
         LEFT JOIN mpqa_lexicon m ON m.word = rw.word
-        LEFT JOIN inq_lexicon i ON i.word = rw.word
+        LEFT JOIN inquirer_lexicon i ON i.word = rw.word
         '''
 
     word_sentiment_df = pd.read_sql_query(word_sentiment_sql, con=conn)
@@ -134,7 +140,7 @@ def extract_features():
             
     # join results together
     review_stats = pd.read_sql('SELECT review_id, rating FROM reviews WHERE review_id IN (SELECT DISTINCT review_id FROM review_words)', con=conn)
-    review_stats = review_stats.merge(word_counts, on='review_id', how='left')
+    review_stats = review_stats.join(word_counts, on='review_id', how='left')
     review_stats = review_stats.join(words_mean, on='review_id', how='left')
     review_stats = review_stats.join(words_median, on='review_id', how='left')
     review_stats = review_stats.join(words_sum, on='review_id', how='left')
