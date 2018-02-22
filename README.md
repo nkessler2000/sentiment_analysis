@@ -20,7 +20,7 @@ Files in this repo:
 - `bing-positive-words.txt` - Positive Words from the Bing Liu sentiment Lexicon text file
 - `subjclueslen1-HLTEMNLP05.tff` - MPQA sentiment lexicon text file
 - `inquirerbasic.xls` - Harvard Inquirer sentiment lexicon Excel file
-- `books.zip` - Books.db SQLite database file, compressed as .zip to fit under GitHub file size limit.
+- `books.7z` - Books.db SQLite database file, compressed as using 7zip to fit under GitHub file size limit.
 - `Review Stats Data Exploration.ipynb` - Jupyter notebook for exploratory data analysis
 - `DecisionTrees.ipynb` - Jupyer notebook for Decision Trees classificaiton model
 - `KNN.ipynb` - Jupyer notebook for Decision Trees classificaiton model
@@ -37,4 +37,4 @@ Usage: From command line enter -<br>
 This will run the `__main__.py` file containing the program entry point. The `__main__.py` file will execute all the steps to build the books.db database, retrieve book information, get reviews for eligable titles, and extract features. All data is saved to the `books.db` file in the `data` subfolder. Please note that building the entire database will take many hours, as the data needs to be scraped from Goodreads website.
 
 ### Important:
-It is possible to run the included Jupyter notebook files using the included books.db database file, which contains a subset of the entire dataset used in the analysis. However, due to GitHub file size limitations, this file needed to be zipped. Before running any Jupyter notebooks, first extract `books.db` from `books.zip in` the `data` subfolder.
+It is possible to run the included Jupyter notebook files using the included books.db database file, which contains a subset of the entire dataset used in the analysis. However, due to GitHub file size limitations, this file needed to be zipped. Before running any Jupyter notebooks, first extract `books.db` from `books.7z` in the `data` subfolder.
