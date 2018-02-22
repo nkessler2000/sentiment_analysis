@@ -36,5 +36,5 @@ Usage: From command line enter -<br>
 
 This will run the `__main__.py` file containing the program entry point. The `__main__.py` file will execute all the steps to build the books.db database, retrieve book information, get reviews for eligable titles, and extract features. All data is saved to the `books.db` file in the `data` subfolder. Please note that building the entire database will take many hours, as the data needs to be scraped from Goodreads website.
 
-### NB:
+### Important:
 It is possible to run the included Jupyter notebook files using the included books.db database file, which contains a subset of the entire dataset used in the analysis. However, due to GitHub file size limitations, this file needed to be zipped. Before running any Jupyter notebooks, first extract `books.db` from `books.zip in` the `data` subfolder.
